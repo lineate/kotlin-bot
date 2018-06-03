@@ -15,7 +15,7 @@ class KBot: Bot {
     private var pid = 0
 
     override fun getName(): String = "Kbot!"
-    override fun move(gs: GameStateView): Move {
+    override fun move(gs: GameState): Move {
         pid = gs.botId
         m = gs.field.size
         n = gs.field.first().size
@@ -79,7 +79,7 @@ class KBot: Bot {
         return lastMove!!
     }
 
-    private fun findMe(gs: GameStateView): List<Point> {
+    private fun findMe(gs: GameState): List<Point> {
         val tail = Cell.tail(pid)
         val me = mutableListOf<Point>(gs.head)
         val cp = AtomicReference<Point>(me.first())
@@ -100,7 +100,7 @@ class KBot: Bot {
         return me
     }
 
-    private fun calculateDestination(random: Random, gs: GameStateView, head: Point): Point? {
+    private fun calculateDestination(random: Random, gs: GameState, head: Point): Point? {
         // put several random dots into the field, and the first empty point
         // is our destination
         for (k in 1..16) {
