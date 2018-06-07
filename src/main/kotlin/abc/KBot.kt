@@ -2,7 +2,6 @@ package abc
 
 import com.lineate.xonix.mind.model.*
 import java.util.*
-import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.abs
 
 class KBot: Bot {
@@ -17,9 +16,9 @@ class KBot: Bot {
     override fun getName(): String = "Kbot!"
     override fun move(gs: GameState): Move {
         pid = gs.botId
-        m = gs.field.size
-        n = gs.field.first().size
-        val me = findMe(gs)
+        m = gs.cells.size
+        n = gs.cells.first().size
+        val me = gs.me
         if (me.isEmpty())
             return Move.STOP
         val head = me.first() // guaranteed to exist
@@ -79,34 +78,13 @@ class KBot: Bot {
         return lastMove!!
     }
 
-    private fun findMe(gs: GameState): List<Point> {
-        val tail = Cell.tail(pid)
-        val me = mutableListOf<Point>(gs.head)
-        val cp = AtomicReference<Point>(me.first())
-        while (cp.get() != null) {
-            // seek for lower letter around until not found
-            val t = cp.get()
-            val nt = neigh.map {
-                val i = (t.row + it.first).bound(0, m - 1)
-                val j = (t.col + it.second).bound(0, n - 1)
-                Point.of(i, j)
-            }.find {
-                !me.contains(it) && gs.field[it.row][it.col] == tail
-            }
-            if (nt != null)
-                me.add(0, nt)
-            cp.set(nt)
-        }
-        return me
-    }
-
     private fun calculateDestination(random: Random, gs: GameState, head: Point): Point? {
         // put several random dots into the field, and the first empty point
         // is our destination
         for (k in 1..16) {
             val i = random.nextInt(m)
             val j = random.nextInt(n)
-            if (gs.field[i][j] == Cell.empty()) {
+            if (gs.cells[i][j] == Cell.empty()) {
                 val p = Point.of(i, j)
                 if (p != head) {
                     return p
