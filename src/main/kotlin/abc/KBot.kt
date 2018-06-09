@@ -4,27 +4,32 @@ import com.lineate.xonix.mind.model.*
 import java.util.*
 import kotlin.math.abs
 
-class KBot: Bot {
-    private val random = Random()
-    private val neigh = listOf(Pair(0, -1), Pair(-1, 0), Pair(0, 1), Pair(1, 0))
+/**
+ * _WARNING_ Bot must have default constructor
+ */
+class KBot(
+    private val name: String = "",
+    private val random: Random = Random()
+) : Bot {
+    // private val neigh = listOf(Pair(0, -1), Pair(-1, 0), Pair(0, 1), Pair(1, 0))
     private var destination: Point? = null
     private var lastMove: Move? = null
     private var m = 0
     private var n = 0
     private var pid = 0
 
-    override fun getName(): String = "Kbot!"
+    override fun getName(): String = "Kbot$name!"
     override fun move(gs: GameState): Move {
         pid = gs.botId
         m = gs.cells.size
         n = gs.cells.first().size
         val me = gs.me
-        if (me.isEmpty())
+        if (me.isEmpty)
             return Move.STOP
-        val head = me.first() // guaranteed to exist
+        val head = me.head().get() // guaranteed to exist
 
         if (lastMove != null) {
-            val (_, newHead) = calculateHeads(me, lastMove!!)
+            val (_, newHead) = calculateHeads(me.body, lastMove!!)
             // don't try to select the last move, if it is to bite itself
             if (me.contains(newHead))
                 lastMove = null
@@ -56,19 +61,19 @@ class KBot: Bot {
                     // horizontal move
                     if (rj < 0) Move.LEFT else Move.RIGHT
                 }
-                val (_, newHead) = calculateHeads(me, move)
+                val (_, newHead) = calculateHeads(me.body, move)
                 if (!me.contains(newHead))
                     break
             } else if (lastMove == null) {
                 move = Move.values()[random.nextInt(4)]
-                val (_, newHead) = calculateHeads(me, move)
+                val (_, newHead) = calculateHeads(me.body, move)
                 if (!me.contains(newHead))
                     break
             } else {
                 // higher probability to choose the last move
                 val r = random.nextInt(16)
                 move = if (r < 4) Move.values()[r] else lastMove!!
-                val (_, newHead) = calculateHeads(me, move)
+                val (_, newHead) = calculateHeads(me.body, move)
                 if (!me.contains(newHead))
                     break
             }
@@ -116,5 +121,21 @@ class KBot: Bot {
         this > u -> u
         else -> this
     }
+}
 
+fun main(args: Array<String>) {
+    val random = Random(123)
+    val gameplay = Gameplay()
+    val bots = listOf(KBot("1", random), KBot("2", random))
+    val botNames = bots.map { it.name }
+    val mgs = gameplay.createMatch(10, 20, bots, 100L, 0.9, 0).gameState
+    for (it in 0..99) {
+        for (k in bots.indices) {
+            val gs = gameplay.getClientGameState(mgs, k)
+            val move = bots[k].move(gs)
+            gameplay.step(mgs, k, move)
+            println("move = " + move + " current game state = \n" +
+                gameplay.describeGameState(mgs, botNames, false, false))
+        }
+    }
 }
