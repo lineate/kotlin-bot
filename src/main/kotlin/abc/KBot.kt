@@ -8,9 +8,14 @@ import kotlin.math.abs
  * _WARNING_ Bot must have default constructor
  */
 class KBot(
-    private val name: String = "",
-    private val random: Random = Random()
+    private val name: String,
+    private val random: Random
 ) : Bot {
+
+    // required by API
+    @Suppress("unused")
+    constructor() : this("", Random())
+
     // private val neigh = listOf(Pair(0, -1), Pair(-1, 0), Pair(0, 1), Pair(1, 0))
     private var destination: Point? = null
     private var lastMove: Move? = null
